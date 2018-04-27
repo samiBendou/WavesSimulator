@@ -68,8 +68,6 @@ init();
 animate();
 
 function init() {
-
-
     //Renderer Init
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -111,19 +109,10 @@ function animate() {
     requestAnimationFrame( animate );
     for(let i = 0; i < plane.geometry.vertices.length; i++) {
         if(plane.geometry.vertices[i].isVector3) {
-            var intensity = 0.0;
-            var amplitude = 0.0;
-            var level     = 0.0;
-            for(let k = 0; k < waves.length; k++) {
-                intensity += waves[k].s(plane.geometry.vertices[i].x, plane.geometry.vertices[i].y, t);;
-                amplitude += waves[k].source.a;
-            }
-            if(amplitude > Number.EPSILON) {
-                level = intensity / amplitude;
-                vertex = plane.geometry.vertices[i].z = level;
-                plane.geometry.verticesNeedUpdate = true;
-                plane.geometry.normalsNeedUpdate = true;
-            }
+            level = getLevelAt(waves, plane.geometry.vertices[i].x, plane.geometry.vertices[i].y, t);
+            vertex = plane.geometry.vertices[i].z = level;
+            plane.geometry.verticesNeedUpdate = true;
+            plane.geometry.normalsNeedUpdate = true;
         }
     }
     t += dt / framesPerSecond;
@@ -157,4 +146,15 @@ function addWave(event) {
         let newWave   = new PlaneWave(newSource, k * Math.cos(thetaK), k * Math.sin(thetaK));
         waves.push(newWave);
     }
+}
+
+function getLevelAt(waves, x, y, t) {
+    var intensity = 0.0;
+    var amplitude = 0.0;
+    for(let k = 0; k < waves.length; k++) {
+        intensity += waves[k].s(x, y, t);
+        amplitude += waves[k].source.a;
+    }
+    let level = (amplitude > Number.EPSILON) ? intensity / amplitude : 0.0;
+    return level;
 }
